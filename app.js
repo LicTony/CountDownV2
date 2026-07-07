@@ -1,10 +1,10 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────
-    const APP_VERSION = '1.3.3';
+    const APP_VERSION = '1.3.6';
     console.log(`Baila Más! Countdown v${APP_VERSION}`);
 
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ76LG-4slpMY_DdcP39BX59jcgg-Iv84TczmvVlzSw6mw6CqP43fdhyBd3siy2eejU05FMcf5iyF6S/pub?gid=0&single=true&output=csv';
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGnVKh-BKFCTuU9UHRASZDny68TRoqWZeoLSXRJh5Nq759A0lUpk4UD3dK4idAL3n4fCQaNTpCFjZA/pub?gid=0&single=true&output=csv';
     const CACHE_TTL = 15_000; // ms
 
     // ── In-memory cache ───────────────────────────────────────────────
@@ -76,12 +76,44 @@
     }
 
     // ── Date helpers ──────────────────────────────────────────────────
-    // "YYYY-MM-DD HH:mm" → Date anchored to Argentina time (UTC-3, no DST).
-    // Using an explicit offset avoids mismatches when the user's browser
-    // is in a different timezone.
-    function parseDate(str) {
-      const [datePart, timePart = '00:00'] = str.trim().split(' ');
-      return new Date(`${datePart}T${timePart}:00-03:00`);
+    // Maps Spanish month names to 0-based month index.
+    const MONTH_MAP = {
+      enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+      julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11
+    };
+
+    // Maps Spanish weekday names to JS getDay() values (0 = Sunday).
+    const WEEKDAY_MAP = {
+      domingo: 0, lunes: 1, martes: 2, miércoles: 3, miercoles: 3,
+      jueves: 4, viernes: 5, sábado: 6, sabado: 6
+    };
+
+    // Builds a Date from the new CSV columns: Anio, Mes, Dia, SemanaMes, Horario.
+    // SemanaMes = 1 → first occurrence of that weekday in the month, etc.
+    // All times are anchored to Argentina time (UTC-3, no DST).
+    function buildDateFromRow(row) {
+      const year      = parseInt(row.Anio, 10);
+      const monthIdx  = MONTH_MAP[(row.Mes || '').toLowerCase().trim()];
+      const targetDay = WEEKDAY_MAP[(row.Dia || '').toLowerCase().trim()];
+      const week      = parseInt(row.SemanaMes, 10); // 1-based
+      const [hh = '0', mm = '0'] = (row.Horario || '00:00').split(':');
+
+      if (isNaN(year) || monthIdx === undefined || targetDay === undefined || isNaN(week)) {
+        return new Date(NaN);
+      }
+
+      // Find the first day of the month, then walk forward to the target weekday.
+      const firstOfMonth = new Date(Date.UTC(year, monthIdx, 1));
+      const firstDow     = firstOfMonth.getUTCDay(); // 0–6
+      let diff = targetDay - firstDow;
+      if (diff < 0) diff += 7;
+      // diff is now the date of the 1st occurrence (0-based day offset).
+      const dayOfMonth = 1 + diff + (week - 1) * 7;
+
+      // Build ISO string in Argentina offset so Date parses it correctly.
+      const pad  = n => String(n).padStart(2, '0');
+      const iso  = `${year}-${pad(monthIdx + 1)}-${pad(dayOfMonth)}T${pad(parseInt(hh, 10))}:${pad(parseInt(mm, 10))}:00-03:00`;
+      return new Date(iso);
     }
 
     // Returns true if `date` falls on today in Argentina time (UTC-3, no DST).
@@ -92,19 +124,45 @@
       return fmt.format(date) === fmt.format(new Date());
     }
 
+    // Returns the current date in Argentina timezone formatted as YYYY-MM-DD.
+    function getArgentinaDateString(date = new Date()) {
+      const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+      return fmt.format(date);
+    }
+
+    // Handles date input change, updates the button label, and triggers filtering.
+    function onDateFilterChange(val) {
+      const btn = document.getElementById('calendarBtn');
+      if (!btn) return;
+      if (val) {
+        const [y, m, d] = val.split('-');
+        const todayStr = getArgentinaDateString();
+        if (val === todayStr) {
+          btn.textContent = `📅 Hoy`;
+        } else {
+          btn.textContent = `📅 ${d}/${m}/${y}`;
+        }
+      } else {
+        btn.textContent = `📅 Calendario`;
+      }
+      applyFiltersAndRender();
+    }
+    window.onDateFilterChange = onDateFilterChange;
+
     // ── Filtering & sorting ───────────────────────────────────────────
     function getActiveClasses(rows) {
       const now = Date.now();
       return rows
         .filter(r => {
-          const activa = (r.Activa || '').toLowerCase().trim();
-          if (activa !== 'sí' && activa !== 'si') return false;
-          const start = parseDate(r.FechaHora);
-          const dur   = Math.max(parseInt(r.DuracionMinutos, 10) || 60, 0);
-          const end   = start.getTime() + dur * 60_000;
+          const activa = (r.Activa || '').toUpperCase().trim();
+          if (activa !== 'SI') return false;
+          const start = buildDateFromRow(r);
+          if (isNaN(start.getTime())) return false;
+          const dur = Math.max(parseInt(r.Duracion, 10) || 60, 0);
+          const end = start.getTime() + dur * 60_000;
           return now <= end; // keep pending + live; discard expired
         })
-        .sort((a, b) => parseDate(a.FechaHora) - parseDate(b.FechaHora));
+        .sort((a, b) => buildDateFromRow(a) - buildDateFromRow(b));
     }
 
     // ── Countdown formatter ───────────────────────────────────────────
@@ -150,21 +208,26 @@
     function createCard(cls) {
       const idx   = _cardIndex++;
       const type    = (cls.Clase || '').toLowerCase(); // 'salsa' | 'bachata'
-      const start   = parseDate(cls.FechaHora);
+      const start   = buildDateFromRow(cls);
       const isToday = isTodayAR(start);
-      const dur     = Math.max(parseInt(cls.DuracionMinutos, 10) || 60, 0);
+      const dur     = Math.max(parseInt(cls.Duracion, 10) || 60, 0);
       const end   = new Date(start.getTime() + dur * 60_000);
 
-      // Display labels
+      // Display labels — forced to Argentina timezone so users outside AR
+      // always see the actual class time, not their local time.
       const dateLabel = start.toLocaleDateString('es-AR', {
-        weekday: 'long', day: 'numeric', month: 'long'
+        weekday: 'long', day: 'numeric', month: 'long',
+        timeZone: 'America/Argentina/Buenos_Aires'
       });
-      const timeLabel = start.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+      const timeLabel = start.toLocaleTimeString('es-AR', {
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
 
       // Textos que vienen del Sheet: SIEMPRE escapados antes de ir a innerHTML
       const claseTxt = escapeHtml(cls.Clase || 'Clase');
       const descTxt  = escapeHtml(cls.Descripcion || '');
-      const diaTxt   = cls.DiaSemana ? escapeHtml(cls.DiaSemana) : '';
+      const diaTxt   = cls.Dia ? escapeHtml(cls.Dia) : '';
       const link     = safeUrl(cls.Link);
 
       // Build card DOM
@@ -284,7 +347,7 @@
       // Extract unique non-empty class names
       const uniqueClasses = [...new Set(classes.map(c => c.Clase).filter(Boolean))];
       // Extract unique non-empty weekday labels
-      const uniqueDays = [...new Set(classes.map(c => c.DiaSemana).filter(Boolean))];
+      const uniqueDays = [...new Set(classes.map(c => c.Dia).filter(Boolean))];
 
       // Sort classes alphabetically
       uniqueClasses.sort((a, b) => a.localeCompare(b));
@@ -335,11 +398,23 @@
     function applyFiltersAndRender() {
       const classVal = document.getElementById('filterClass').value;
       const dayVal = document.getElementById('filterDay').value;
+      const dateVal = document.getElementById('dateFilter').value;
 
       const filtered = allActiveClasses.filter(c => {
         const matchClass = !classVal || c.Clase === classVal;
-        const matchDay = !dayVal || c.DiaSemana === dayVal;
-        return matchClass && matchDay;
+        const matchDay = !dayVal || c.Dia === dayVal;
+
+        let matchDate = true;
+        if (dateVal) {
+          const classDate = buildDateFromRow(c);
+          if (!isNaN(classDate.getTime())) {
+            matchDate = getArgentinaDateString(classDate) === dateVal;
+          } else {
+            matchDate = false;
+          }
+        }
+
+        return matchClass && matchDay && matchDate;
       });
 
       renderCards(filtered);
@@ -380,7 +455,17 @@
         
         $grid.style.display   = 'grid';
         populateFilters(allActiveClasses);
-        applyFiltersAndRender();
+
+        // Initialize calendar to today by default
+        const dateInput = document.getElementById('dateFilter');
+        if (dateInput) {
+          const todayStr = getArgentinaDateString();
+          dateInput.value = todayStr;
+          onDateFilterChange(todayStr);
+        } else {
+          applyFiltersAndRender();
+        }
+
         updateTimestamp();
       } catch (err) {
         $status.innerHTML = `

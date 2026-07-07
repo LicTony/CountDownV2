@@ -6,7 +6,7 @@
      known schedule if the user is offline.
    ──────────────────────────────────────────────────────────────────── */
 
-const CACHE_NAME = 'bailamas-v1.3.3';
+const CACHE_NAME = 'bailamas-v1.3.6';
 
 // App shell — everything needed to render the UI without network
 const SHELL_URLS = [
@@ -59,7 +59,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request)) // offline: serve cached schedule
+        .catch(() => caches.match(request, { ignoreSearch: true })) // offline: serve cached schedule
     );
     return;
   }
