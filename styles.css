@@ -624,3 +624,92 @@
         text-align: right;
       }
     }
+
+    /* ── Houston link (footer) ─────────────────────────────────────── */
+    #houstonLink {
+      margin-left: 0.8rem;
+    }
+    #houstonLink a {
+      color: rgba(255, 80, 80, 0.7);
+      font-size: 0.72rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    #houstonLink a:hover {
+      color: #ff5050;
+      text-decoration: underline;
+    }
+
+    /* ── Houston modal ─────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-content {
+      background: #1a1a2e;
+      border: 1px solid rgba(200, 0, 255, 0.2);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 420px;
+      max-height: 70vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.2rem;
+      border-bottom: 1px solid rgba(200, 0, 255, 0.12);
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--magenta);
+      letter-spacing: 0.05em;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 0.3rem;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .modal-close:hover {
+      color: #ff5050;
+    }
+    .modal-body {
+      padding: 1rem 1.2rem;
+      overflow-y: auto;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+    }
+    .houston-item {
+      background: rgba(255, 80, 80, 0.06);
+      border: 1px solid rgba(255, 80, 80, 0.15);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+    .houston-item strong {
+      color: #ff5050;
+    }
+    .houston-item span {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }

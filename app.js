@@ -1,7 +1,7 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────
-    const APP_VERSION = '1.3.8';
+    const APP_VERSION = '1.3.11';
     console.log(`Baila Más! Countdown v${APP_VERSION}`);
 
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGnVKh-BKFCTuU9UHRASZDny68TRoqWZeoLSXRJh5Nq759A0lUpk4UD3dK4idAL3n4fCQaNTpCFjZA/pub?gid=0&single=true&output=csv';
@@ -10,6 +10,7 @@
     // ── In-memory cache ───────────────────────────────────────────────
     const cache = { data: null, ts: 0 };
     let allActiveClasses = []; // Cache list of parsed, active classes for filtering
+    let invalidDateClasses = []; // IDs de clases con fecha inválida — mostrados en "Houston"
 
     async function fetchClasses() {
       const now = Date.now();
@@ -137,12 +138,16 @@
     // ── Filtering & sorting ───────────────────────────────────────────
     function getActiveClasses(rows) {
       const now = Date.now();
+      invalidDateClasses = []; // reset antes de filtrar
       return rows
         .filter(r => {
           const activa = (r.Activa || '').toUpperCase().trim();
           if (activa !== 'SI') return false;
           const start = buildDateFromRow(r);
-          if (isNaN(start.getTime())) return false;
+          if (isNaN(start.getTime())) {
+            invalidDateClasses.push({ Id: r.Id, Clase: r.Clase, Anio: r.Anio, Mes: r.Mes, Dia: r.Dia, SemanaMes: r.SemanaMes, Horario: r.Horario });
+            return false;
+          }
           const dur = Math.max(parseInt(r.Duracion, 10) || 60, 0);
           const end = start.getTime() + dur * 60_000;
           return now <= end; // keep pending + live; discard expired
@@ -328,6 +333,38 @@
         if (card) grid.appendChild(card);
       });
       tickAll(); // pinta los valores ya, sin esperar el primer segundo
+      updateHoustonLink();
+    }
+
+    // ── Houston — Error reporter ────────────────────────────────────
+    function updateHoustonLink() {
+      const el = document.getElementById('houstonLink');
+      if (!el) return;
+      el.style.display = invalidDateClasses.length > 0 ? '' : 'none';
+    }
+
+    function showHoustonModal() {
+      const modal = document.getElementById('houstonModal');
+      const list  = document.getElementById('houstonList');
+      if (!modal || !list) return;
+
+      if (invalidDateClasses.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-secondary)">No hay errores de fecha.</p>';
+      } else {
+        list.innerHTML = invalidDateClasses.map(c =>
+          `<div class="houston-item">
+            <strong>ID ${escapeHtml(c.Id)}</strong> — ${escapeHtml(c.Clase || '?')}<br>
+            <span>${escapeHtml(c.Anio || '?')}/${escapeHtml(c.Mes || '?')}/${escapeHtml(c.Dia || '?')} Sem=${escapeHtml(c.SemanaMes || '?')} · ${escapeHtml(c.Horario || '?')}</span>
+          </div>`
+        ).join('');
+      }
+
+      modal.classList.add('open');
+    }
+
+    function closeHoustonModal() {
+      const modal = document.getElementById('houstonModal');
+      if (modal) modal.classList.remove('open');
     }
 
     // ── Filtering UI Logic ───────────────────────────────────────────
@@ -426,6 +463,7 @@
       try {
         const rows   = await fetchClasses();
         allActiveClasses = getActiveClasses(rows);
+        updateHoustonLink();
         
         $status.style.display = 'none';
         
@@ -462,6 +500,7 @@
       try {
         const rows   = await fetchClasses();
         allActiveClasses = getActiveClasses(rows);
+        updateHoustonLink();
         populateFilters(allActiveClasses);
         applyFiltersAndRender();
       } catch (err) {
