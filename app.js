@@ -1,7 +1,7 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────
-    const APP_VERSION = '1.3.7';
+    const APP_VERSION = '1.3.8';
     console.log(`Baila Más! Countdown v${APP_VERSION}`);
 
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGnVKh-BKFCTuU9UHRASZDny68TRoqWZeoLSXRJh5Nq759A0lUpk4UD3dK4idAL3n4fCQaNTpCFjZA/pub?gid=0&single=true&output=csv';
@@ -99,6 +99,7 @@
       const [hh = '0', mm = '0'] = (row.Horario || '00:00').split(':');
 
       if (isNaN(year) || monthIdx === undefined || targetDay === undefined || isNaN(week)) {
+        console.warn('[buildDateFromRow] ERROR: campos inválidos', { Id: row.Id, Clase: row.Clase, Anio: row.Anio, Mes: row.Mes, Dia: row.Dia, SemanaMes: row.SemanaMes, Horario: row.Horario });
         return new Date(NaN);
       }
 
@@ -113,7 +114,15 @@
       // Build ISO string in Argentina offset so Date parses it correctly.
       const pad  = n => String(n).padStart(2, '0');
       const iso  = `${year}-${pad(monthIdx + 1)}-${pad(dayOfMonth)}T${pad(parseInt(hh, 10))}:${pad(parseInt(mm, 10))}:00-03:00`;
-      return new Date(iso);
+      const date = new Date(iso);
+
+      if (isNaN(date.getTime())) {
+        console.warn('[buildDateFromRow] ERROR: fecha inválida', { Id: row.Id, Clase: row.Clase, iso, dayOfMonth });
+        return date;
+      }
+
+      console.log(`[buildDateFromRow] id=${row.Id} clase=${row.Clase} → ${date.toISOString()}`);
+      return date;
     }
 
     // Returns true if `date` falls on today in Argentina time (UTC-3, no DST).
@@ -185,6 +194,12 @@
       const idx   = _cardIndex++;
       const type    = (cls.Clase || '').toLowerCase(); // 'salsa' | 'bachata'
       const start   = buildDateFromRow(cls);
+
+      // Guard: if date is invalid, skip this card instead of crashing.
+      if (isNaN(start.getTime())) {
+        console.error('[createCard] Skipping card with invalid date', { Id: cls.Id, Clase: cls.Clase, Anio: cls.Anio, Mes: cls.Mes, Dia: cls.Dia, SemanaMes: cls.SemanaMes, Horario: cls.Horario });
+        return null;
+      }
       const isToday = isTodayAR(start);
       const dur     = Math.max(parseInt(cls.Duracion, 10) || 60, 0);
       const end   = new Date(start.getTime() + dur * 60_000);
@@ -308,7 +323,10 @@
         return;
       }
 
-      classes.forEach(cls => grid.appendChild(createCard(cls)));
+      classes.forEach(cls => {
+        const card = createCard(cls);
+        if (card) grid.appendChild(card);
+      });
       tickAll(); // pinta los valores ya, sin esperar el primer segundo
     }
 
