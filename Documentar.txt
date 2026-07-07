@@ -1,0 +1,75 @@
+en google sheet las columnas FechaHora y Fecha que tienen las formulas complejas
+
+se editan y en Auto Compute SpreadSheetFormula, se borra la formula
+
+en el google sheet se dejan las formulas hasta el renglon 1000, y se agrega que si esta vacia el primer valor de la formula retorna vacio sino calcula la formula
+Ejemplo 
+
+
+
+=IF(J2="";
+   "";
+   DATE(J2;
+      MATCH(K2;{"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};0);
+      1)+MOD(SWITCH(M2;
+         "Lunes";1;
+         "Martes";2;
+         "Miercoles";3;
+         "Jueves";4;
+         "Viernes";5;
+         "Sabado";6;
+         "Domingo";7)-WEEKDAY(DATE(J2;
+            MATCH(K2;{"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};0);
+            1);
+         2);
+      7)+(L2-1)*7+TIMEVALUE(N2))
+ 
+
+
+Probar solo poner la formula en el renglon 2 con ArrayFormula.
+
+=ARRAYFORMULA(IF(J2:J="";
+   "";
+   DATE(J2:J;
+      MATCH(K2:K;{"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};0);
+      1)+MOD(SWITCH(M2:M;
+         "Lunes";1;
+         "Martes";2;
+         "Miercoles";3;
+         "Jueves";4;
+         "Viernes";5;
+         "Sabado";6;
+         "Domingo";7)-WEEKDAY(DATE(J2:J;
+            MATCH(K2:K;{"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};0);
+            1);
+         2);
+      7)+(L2:L-1)*7+TIMEVALUE(N2:N)))
+
+
+
+Probar formula con manejo de error
+
+=ARRAYFORMULA(IF(J2:J="";
+   "";
+   IFERROR(DATE(J2:J;
+         MATCH(K2:K;
+            {"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};
+            0);
+         1)+MOD(SWITCH(M2:M;
+            "Lunes";1;
+            "Martes";2;
+            "Miercoles";3;
+            "Miércoles";3;
+            "Jueves";4;
+            "Viernes";5;
+            "Sabado";6;
+            "Sábado";6;
+            "Domingo";7;
+            NA())-WEEKDAY(DATE(J2:J;
+               MATCH(K2:K;
+                  {"Enero";"Febrero";"Marzo";"Abril";"Mayo";"Junio";"Julio";"Agosto";"Septiembre";"Octubre";"Noviembre";"Diciembre"};
+                  0);
+               1);
+            2);
+         7)+(L2:L-1)*7+IFERROR(TIMEVALUE(N2:N);0);
+   "")))

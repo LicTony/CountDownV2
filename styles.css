@@ -1,0 +1,626 @@
+    /* ── Design Tokens — Baila Más branding ─────────────────────────── */
+    :root {
+      /* backgrounds */
+      --bg:              #0d0a1a;
+      --bg-mid:          #110d22;
+      --surface:         rgba(200, 0, 255, 0.05);
+      --surface-hover:   rgba(200, 0, 255, 0.10);
+      --border:          rgba(200, 0, 255, 0.18);
+
+      /* text */
+      --text-primary:    #f0eeff;
+      --text-secondary:  #8877bb;
+
+      /* brand accents */
+      --magenta:         #c800ff;
+      --magenta-dim:     #8b00b3;
+      --orange:          #ff9900;
+      --orange-dim:      #c97800;
+      --yellow:          #ffe000;
+      --live:            #00e676;
+
+      /* card gradients per dance type */
+      --salsa-a:         #ff9900;
+      --salsa-b:         #ff5500;
+      --bachata-a:       #c800ff;
+      --bachata-b:       #7b00cc;
+
+      /* geometry */
+      --radius-card:     20px;
+      --radius-inner:    10px;
+    }
+
+    /* ── Reset & Base ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 70% 50% at 10% 0%,   rgba(200, 0, 255, 0.12) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgba(255, 153, 0, 0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 50% 50%,  rgba(200, 0, 255, 0.04) 0%, transparent 70%);
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 3rem 1rem 1.5rem;
+      position: relative;
+    }
+
+    /* Decorative neon line above header */
+    header::before {
+      content: '';
+      display: block;
+      height: 3px;
+      width: 120px;
+      margin: 0 auto 2rem;
+      background: linear-gradient(90deg, transparent, var(--magenta), var(--orange), transparent);
+      border-radius: 999px;
+    }
+
+    .header-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 10vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: 0.03em;
+      background: linear-gradient(135deg, var(--yellow) 0%, var(--orange) 40%, var(--magenta) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(200, 0, 255, 0.45));
+      margin-bottom: 0.3rem;
+    }
+
+    .header-location {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(0.7rem, 2vw, 0.85rem);
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.6rem;
+    }
+
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Status (loading / error) ────────────────────────────────────── */
+    #status {
+      text-align: center;
+      padding: 5rem 1rem;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(200, 0, 255, 0.15);
+      border-top-color: var(--magenta);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 1.2rem;
+      box-shadow: 0 0 16px rgba(200, 0, 255, 0.3);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Grid ────────────────────────────────────────────────────────── */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    /* ── Card ────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      --card-pad: 1.6rem;
+      padding: var(--card-pad);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Neon glow border via pseudo-element */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      padding: 1.5px;
+      background: var(--grad);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.6;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Subtle inner glow */
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      background: var(--grad);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), var(--glow);
+    }
+
+    .card:hover::before { opacity: 1; }
+    .card:hover::after  { opacity: 0.04; }
+
+    /* Type-specific gradients + glows */
+    .card {
+      --grad: linear-gradient(135deg, #2a0050, var(--magenta-dim), #6600aa);
+      --glow: 0 0 30px rgba(139, 0, 179, 0.25);
+    }
+    .card.salsa {
+      --grad: linear-gradient(135deg, var(--salsa-b), var(--salsa-a), var(--yellow));
+      --glow: 0 0 30px rgba(255, 153, 0, 0.25);
+    }
+    .card.bachata {
+      --grad: linear-gradient(135deg, var(--magenta), var(--orange));
+      --glow: 0 0 30px rgba(200, 0, 255, 0.3);
+    }
+
+    /* Live glow */
+    .card.live {
+      border-color: rgba(0, 230, 118, 0.3);
+      box-shadow: 0 0 40px rgba(0, 230, 118, 0.15);
+    }
+
+    /* ── Today highlight ─────────────────────────────────────────────── */
+    /* Both ::before and ::after are already used (neon border + inner glow).
+       The top accent bar is achieved with inset box-shadow to avoid conflicts. */
+    .card.today {
+      border-color: rgba(255, 224, 0, 0.45);
+      box-shadow: 0 0 35px rgba(255, 224, 0, 0.10), inset 0 3px 0 var(--yellow);
+    }
+
+    .card.today:hover {
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 35px rgba(255, 224, 0, 0.22),
+        inset 0 3px 0 var(--yellow);
+    }
+
+    .badge-today-full {
+      display: block;
+      width: calc(100% + (2 * var(--card-pad)));
+      margin: calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad)) 1.2rem calc(-1 * var(--card-pad));
+      padding: 0.55rem 1rem;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.18em;
+      background: linear-gradient(90deg, rgba(255, 224, 0, 0.15), rgba(255, 153, 0, 0.15));
+      border-bottom: 1px solid rgba(255, 224, 0, 0.35);
+      color: var(--yellow);
+      text-shadow: 0 0 10px rgba(255, 224, 0, 0.6);
+      box-sizing: border-box;
+      animation: today-glow-full 2.2s ease-in-out infinite;
+    }
+
+    @keyframes today-glow-full {
+      0%, 100% { background: linear-gradient(90deg, rgba(255, 224, 0, 0.12), rgba(255, 153, 0, 0.12)); }
+      50%       { background: linear-gradient(90deg, rgba(255, 224, 0, 0.25), rgba(255, 153, 0, 0.25)); }
+    }
+
+    /* ── Badge ───────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.9rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+      background: var(--grad);
+      color: #fff;
+      box-shadow: var(--glow);
+    }
+
+    .badge-weekday {
+      display: inline-block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.22rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(200, 0, 255, 0.25);
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    /* ── Card text ───────────────────────────────────────────────────── */
+    .card-date {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.02em;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.4rem;
+      min-height: 1.1em;
+    }
+
+    /* ── Countdown ───────────────────────────────────────────────────── */
+    .countdown {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .cd-block {
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: var(--radius-inner);
+      border: 1px solid rgba(200, 0, 255, 0.12);
+      padding: 0.65rem 0.2rem;
+      text-align: center;
+    }
+
+    .cd-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      line-height: 1;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(200, 0, 255, 0.4));
+    }
+
+    .cd-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.55rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 0.2rem;
+      font-weight: 600;
+    }
+
+    /* ── Live banner ─────────────────────────────────────────────────── */
+    .live-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: rgba(0, 230, 118, 0.08);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      border-radius: var(--radius-inner);
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.4rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      color: var(--live);
+      text-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
+    }
+
+    .dot {
+      width: 9px; height: 9px;
+      background: var(--live);
+      border-radius: 50%;
+      animation: pulse 1.2s ease-in-out infinite;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px var(--live);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.3; transform: scale(0.75); }
+    }
+
+    /* Swap countdown ↔ live banner */
+    .card.live .countdown    { display: none; }
+    .card.live .live-banner  { display: flex; }
+
+    /* ── Link button ─────────────────────────────────────────────────── */
+    .card-link {
+      display: block;
+      text-align: center;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-inner);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+      background: var(--grad);
+      color: #fff;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: var(--glow);
+    }
+
+    .card-link:hover {
+      opacity: 0.9;
+      transform: scale(0.98);
+      box-shadow: var(--glow), 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .card-link.no-link {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      cursor: default;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────────── */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 5rem 1rem;
+      color: var(--text-secondary);
+    }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .empty h2   {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      border-top: 1px solid rgba(200, 0, 255, 0.12);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+    }
+
+    footer strong {
+      color: var(--magenta);
+      font-family: 'Bebas Neue', sans-serif;
+      letter-spacing: 0.1em;
+      font-size: 0.9rem;
+    }
+
+    #refreshBtn {
+      display: inline-block;
+      margin-top: 0.6rem;
+      padding: 0.4rem 1.2rem;
+      background: rgba(200, 0, 255, 0.08);
+      border: 1px solid rgba(200, 0, 255, 0.25);
+      border-radius: 8px;
+      color: var(--magenta);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s, box-shadow 0.2s;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    #refreshBtn:hover:not(:disabled) {
+      background: rgba(200, 0, 255, 0.15);
+      box-shadow: 0 0 12px rgba(200, 0, 255, 0.2);
+    }
+
+    #refreshBtn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── Redes Sociales ──────────────────────────────────────────────── */
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.2rem;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(200, 0, 255, 0.15);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .social-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--text-secondary);
+      transition: fill 0.3s ease, transform 0.3s ease;
+    }
+
+    .social-btn:hover {
+      transform: translateY(-4px);
+    }
+
+    /* WhatsApp Hover */
+    .social-btn.whatsapp:hover {
+      background: rgba(37, 211, 102, 0.12);
+      border-color: rgba(37, 211, 102, 0.6);
+      box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+    }
+    .social-btn.whatsapp:hover svg {
+      fill: #25d366;
+      transform: scale(1.15);
+    }
+
+    /* Instagram Hover */
+    .social-btn.instagram:hover {
+      background: rgba(225, 48, 108, 0.12);
+      border-color: rgba(225, 48, 108, 0.6);
+      box-shadow: 0 0 20px rgba(225, 48, 108, 0.4);
+    }
+    .social-btn.instagram:hover svg {
+      fill: #e1306c;
+      transform: scale(1.15);
+    }
+
+    /* TikTok Hover */
+    .social-btn.tiktok:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #00f2fe;
+      box-shadow: 0 0 20px rgba(255, 0, 80, 0.4), 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+    .social-btn.tiktok:hover svg {
+      fill: #ffffff;
+      transform: scale(1.15);
+    }
+
+    /* Spotify Hover */
+    .social-btn.spotify:hover {
+      background: rgba(29, 185, 84, 0.12);
+      border-color: rgba(29, 185, 84, 0.6);
+      box-shadow: 0 0 20px rgba(29, 185, 84, 0.4);
+    }
+    .social-btn.spotify:hover svg {
+      fill: #1db954;
+      transform: scale(1.15);
+    }
+
+    /* ── Filtros ─────────────────────────────────────────────────────── */
+    .filters-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.5rem 1.5rem 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.8rem;
+      min-width: 200px;
+      flex: 1 1 200px;
+      max-width: 300px;
+    }
+
+    .filter-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding-left: 0.2rem;
+    }
+
+    .filter-select {
+      font-family: 'Outfit', sans-serif;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-inner);
+      color: var(--text-primary);
+      padding: 0.65rem 2.5rem 0.65rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238877bb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1.1rem;
+      backdrop-filter: blur(8px);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .filter-select:hover {
+      background-color: var(--surface-hover);
+      border-color: rgba(200, 0, 255, 0.35);
+    }
+
+    .filter-select:focus {
+      border-color: var(--magenta);
+      box-shadow: 0 0 12px rgba(200, 0, 255, 0.3);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23c800ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+
+    .filter-select option {
+      background: var(--bg-mid);
+      color: var(--text-primary);
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .cd-value       { font-size: 1.6rem; }
+      .card           { --card-pad: 1.3rem; }
+      .header-brand   { font-size: clamp(2.5rem, 14vw, 4rem); }
+
+      .filters-container {
+        padding: 0.5rem 1rem 1rem;
+        gap: 0.6rem;
+      }
+      .filter-group {
+        flex: 1 1 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+      /* Ancho fijo igual en ambas etiquetas → los dos selects quedan alineados */
+      .filter-label {
+        width: 3.2rem;
+        text-align: right;
+      }
+    }

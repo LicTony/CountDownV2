@@ -1,0 +1,7 @@
+Clase,FechaHora,DuracionMinutos,DiaSemana,Descripcion,Link,Activa
+Salsa,2026-07-05 20:00,60,Sábado,Clase abierta nivel inicial,,Sí
+Bachata,2026-07-08 19:00,90,Martes,Práctica intermedia,https://zoom.us/j/ejemplo1,Sí
+Salsa,2026-07-12 20:00,60,Sábado,Nivel avanzado - repaso figuras,,Sí
+Bachata,2026-07-15 19:00,90,Martes,Clase con música en vivo,https://zoom.us/j/ejemplo2,Sí
+Salsa,2026-06-28 20:00,60,Sábado,Clase pasada (debería ocultarse),,Sí
+Bachata,2026-07-10 19:00,90,Jueves,Clase desactivada,,No
