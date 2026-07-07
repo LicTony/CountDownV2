@@ -6,7 +6,7 @@
      known schedule if the user is offline.
    ──────────────────────────────────────────────────────────────────── */
 
-const CACHE_NAME = 'bailamas-v1.3.6';
+const CACHE_NAME = 'bailamas-v1.3.7';
 
 // App shell — everything needed to render the UI without network
 const SHELL_URLS = [

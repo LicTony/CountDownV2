@@ -1,7 +1,7 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────
-    const APP_VERSION = '1.3.6';
+    const APP_VERSION = '1.3.7';
     console.log(`Baila Más! Countdown v${APP_VERSION}`);
 
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGnVKh-BKFCTuU9UHRASZDny68TRoqWZeoLSXRJh5Nq759A0lUpk4UD3dK4idAL3n4fCQaNTpCFjZA/pub?gid=0&single=true&output=csv';
@@ -124,30 +124,6 @@
       return fmt.format(date) === fmt.format(new Date());
     }
 
-    // Returns the current date in Argentina timezone formatted as YYYY-MM-DD.
-    function getArgentinaDateString(date = new Date()) {
-      const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
-      return fmt.format(date);
-    }
-
-    // Handles date input change, updates the button label, and triggers filtering.
-    function onDateFilterChange(val) {
-      const btn = document.getElementById('calendarBtn');
-      if (!btn) return;
-      if (val) {
-        const [y, m, d] = val.split('-');
-        const todayStr = getArgentinaDateString();
-        if (val === todayStr) {
-          btn.textContent = `📅 Hoy`;
-        } else {
-          btn.textContent = `📅 ${d}/${m}/${y}`;
-        }
-      } else {
-        btn.textContent = `📅 Calendario`;
-      }
-      applyFiltersAndRender();
-    }
-    window.onDateFilterChange = onDateFilterChange;
 
     // ── Filtering & sorting ───────────────────────────────────────────
     function getActiveClasses(rows) {
@@ -398,23 +374,11 @@
     function applyFiltersAndRender() {
       const classVal = document.getElementById('filterClass').value;
       const dayVal = document.getElementById('filterDay').value;
-      const dateVal = document.getElementById('dateFilter').value;
 
       const filtered = allActiveClasses.filter(c => {
         const matchClass = !classVal || c.Clase === classVal;
         const matchDay = !dayVal || c.Dia === dayVal;
-
-        let matchDate = true;
-        if (dateVal) {
-          const classDate = buildDateFromRow(c);
-          if (!isNaN(classDate.getTime())) {
-            matchDate = getArgentinaDateString(classDate) === dateVal;
-          } else {
-            matchDate = false;
-          }
-        }
-
-        return matchClass && matchDay && matchDate;
+        return matchClass && matchDay;
       });
 
       renderCards(filtered);
@@ -456,15 +420,7 @@
         $grid.style.display   = 'grid';
         populateFilters(allActiveClasses);
 
-        // Initialize calendar to today by default
-        const dateInput = document.getElementById('dateFilter');
-        if (dateInput) {
-          const todayStr = getArgentinaDateString();
-          dateInput.value = todayStr;
-          onDateFilterChange(todayStr);
-        } else {
-          applyFiltersAndRender();
-        }
+        applyFiltersAndRender();
 
         updateTimestamp();
       } catch (err) {
