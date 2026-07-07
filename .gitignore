@@ -6,3 +6,8 @@ Thumbs.db
 node_modules/
 .vscode/.checkmarxIgnored
 Branding.png
+
+# Agent Tooling
+.atl/
+
+.atl/skill-registry.md
