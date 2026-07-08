@@ -1,7 +1,7 @@
     'use strict';
 
     // ── Config ────────────────────────────────────────────────────────
-    const APP_VERSION = '1.3.11';
+    const APP_VERSION = '1.3.12';
     console.log(`Baila Más! Countdown v${APP_VERSION}`);
 
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGnVKh-BKFCTuU9UHRASZDny68TRoqWZeoLSXRJh5Nq759A0lUpk4UD3dK4idAL3n4fCQaNTpCFjZA/pub?gid=0&single=true&output=csv';
